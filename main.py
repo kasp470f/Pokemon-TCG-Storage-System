@@ -1,3 +1,5 @@
+import sys
+sys.dont_write_bytecode = True
 import threading
 import cv2 as cv
 import numpy as np
