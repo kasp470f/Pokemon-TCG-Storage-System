@@ -99,24 +99,36 @@ class Gui:
 
     def setupInfoFrame(self):
         # Information frame with below search feed
-        self.infoFrame = Frame(self.root, width=304, height=200)
+        self.infoFrame = Frame(self.root, width=304, height=130)
         self.infoFrame.config(highlightbackground="black", highlightthickness=2)
         self.infoFrame.place(x=1080, y=450)
         self.nameLabel = Label(self.infoFrame, text='Name:').place(x=10, y=10)
         self.cardNumberLabel = Label(self.infoFrame, text='Card Number:').place(x=10, y=40)
         self.setLabel = Label(self.infoFrame, text='Set:').place(x=10, y=70)
+        self.cardRarityLabel = Label(self.infoFrame, text='Rarity:').place(x=10, y=100)
+
         # create a button but disable it until a card is found
-        self.addToCollectionBulkButton = Button(self.infoFrame, text='Add to Collection (Bulk)', command=self.addToCollection, state='disabled')
-        self.addToCollectionBulkButton.place(x=85, y=130)
-        self.addToCollectionExtendedButton = Button(self.infoFrame, text='Add to Collection (Extended)', command=self.addToCollectionExtended, state='disabled')
-        self.addToCollectionExtendedButton.place(x=70, y=160)
+        self.addToCollectionBulkButton = Button(self.root, text='Add to Collection (Bulk)', command=self.addToCollection, state='disabled')
+        self.addToCollectionBulkButton.place(x=1160, y=590)
+        self.addToCollectionExtendedButton = Button(self.root, text='Add to Collection (Extended)', command=self.addToCollectionExtended, state='disabled')
+        self.addToCollectionExtendedButton.place(x=1150, y=620)
 
     def updateInfoFrame(self, card):
         self.infoFrame.destroy()
         self.setupInfoFrame()
         self.nameLabel = Label(self.infoFrame, text=f"Name: {card['Name']}").place(x=10, y=10)
-        self.cardNumberLabel = Label(self.infoFrame, text=f"Card Number: {str(card['Set']['Number'])} / {str(card['Set']['PrintedTotal'])} ({str(card['Set']['TotalCards'])})").place(x=10, y=40)
+
+        global cardNumberLabeltext
+        if str(card['Set']['Number']).isnumeric():
+            cardNumberLabeltext = f"{str(card['Set']['Number'])} / {str(card['Set']['PrintedTotal'])} ({str(card['Set']['TotalCards'])})"
+        else:
+            # get the characters in the string before the first number and put them in a new string 
+            cardSubset = ''.join([i for i in card['Set']['Number'] if not i.isdigit()])
+            cardNumberLabeltext = f"{str(card['Set']['Number'])} / {cardSubset}{str(card['Set']['TotalCards'])}"
+
+        self.cardNumberLabel = Label(self.infoFrame, text=f"Card Number: {cardNumberLabeltext}").place(x=10, y=40)
         self.setLabel = Label(self.infoFrame, text=f"Set: {card['Set']['Name']}").place(x=10, y=70)
+        self.cardRarityLabel = Label(self.infoFrame, text=f"Rarity: {card['Rarity']}").place(x=10, y=100)
         self.addToCollectionExtendedButton.config(state='normal')
         self.addToCollectionBulkButton.config(state='normal')
         self.foundCard = card

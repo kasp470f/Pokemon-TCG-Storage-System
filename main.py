@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from data.dataset import findMatch, toHash, url_to_image
 from detector import detectCard, transformCard
 from gui.gui import Gui
-from spreadsheet import GoogleSheets
+from data.spreadsheet import GoogleSheets
 
 root = Tk()
 googleSheets = GoogleSheets()

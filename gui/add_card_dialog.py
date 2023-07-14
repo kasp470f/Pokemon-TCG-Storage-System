@@ -5,7 +5,7 @@ import tkinter
 import cv2 as cv
 from PIL import Image, ImageTk
 from data.dataset import url_to_image
-from spreadsheet import CardData
+from data.spreadsheet import CardData
 
 
 class AddCardDialog:
