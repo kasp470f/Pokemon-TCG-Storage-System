@@ -5,3 +5,4 @@ gui/__pycache__/add_card_dialog.cpython-311.pyc
 gui/__pycache__/gui.cpython-311.pyc
 test.py
 sheets_crendentials.json
+.vscode

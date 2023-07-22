@@ -7,8 +7,10 @@ contour_size = 1000
 flattenMaxWidth = 300
 flattenMaxHeight = 400
 
-
 def detectCard(img):
+    # remove black bars from the frame
+    img = img[60:img.shape[0]-60, 0:img.shape[1]]
+
     # convert to grayscale
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     

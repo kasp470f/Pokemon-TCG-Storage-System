@@ -6,7 +6,7 @@ import numpy as np
 from urllib.request import Request, urlopen
 
 # load the file from path dataset/dataset.json
-api_dataset = open('dataset/api_dataset.json', 'r')
+api_dataset = open('data/scraper/api_dataset.json', 'r')
 
 # parse the json file
 dataset = json.load(api_dataset)
@@ -70,7 +70,11 @@ amount = len(dataset)
 threads_amount = 10
 threads = []
 for i in range(0, threads_amount):
-    threads.append(threading.Thread(target=hashDatasetPart, args=(int(i * amount / threads_amount), int((i + 1) * amount / threads_amount))))
+    start = int(i * amount / threads_amount)
+    end = int((i + 1) * amount / threads_amount)
+    _thread = threading.Thread(target=hashDatasetPart, args=(start, end))
+    _thread.name = f"Hashing Thread {i} ({start}-{end})"
+    threads.append(_thread)
     threads[i].start()
 
 
@@ -78,7 +82,7 @@ for i in range(0, threads_amount):
     threads[i].join()
 
 # save the dataset as hash_dataset.json in the same directory
-with open('dataset/hash_dataset.json', 'w') as outfile:
+with open('data/scraper/hash_dataset.json', 'w') as outfile:
     json.dump(dataset, outfile, indent=4)
 
 # print the number of images that were not found

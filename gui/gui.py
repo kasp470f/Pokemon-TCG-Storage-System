@@ -1,10 +1,14 @@
-from tkinter import Frame, Image, Text, Tk, Label, Button, Toplevel
+from tkinter import Checkbutton, Frame, Image, IntVar, Radiobutton, Label, Button
+from tkcalendar import DateEntry
+import tkinter
 from PIL import Image, ImageTk
-from gui.add_card_dialog import AddCardDialog
+from gui.grading_dialog import Grading_Dialog
+from models.card_data import CardData
 import cv2 as cv
 import numpy as np
 
 from data.dataset import url_to_image
+from models.grading_models import PersonalGrading
 
 class Gui:
     cvSearchImage = None
@@ -12,13 +16,20 @@ class Gui:
     searched = False
     foundCard = None
 
+    storageLocations = ["Storage Box 1", "Storage Box 2", "Storage Box 3", "Storage Box 4", "Storage Box 5", "Storage Box 6", 
+                        "Storage Box 7", "Storage Box 8", "Storage Box 9", "Trade Binder", "Union Binder", "Toploader Binder", "Playable Tin", "Other"]
+    
+    obtainedHow =  [ "Opened", "Bought", "Traded", "Other" ]
+
     def __init__(self, root, googleSheets):
         self.root = root
         self.googleSheets = googleSheets
+        self.personalGrading = PersonalGrading()
         root.title("Pokémon Card Scanner")
         root.geometry('1600x800')
         root.resizable(False, False)
         self.setupGui(root)
+        self.closed = False
 
     def setupGui(self, root):
         # Camera frame which contains the detected image
@@ -59,6 +70,34 @@ class Gui:
         self.searchFeed.place(x=0, y=40, bordermode='inside')
         self.setImageNone(self.searchFeed)
 
+        # Misc frame
+        miscFrame = Frame(self.root, width=220, height=197)
+        miscFrame.place(x=1384, y=403)
+        miscFrame.config(highlightbackground="#d3d3d3", highlightthickness=1)
+        Label(miscFrame, text='Miscellaneous:', font="Helvetica 9 bold").place(x=5, y=0)
+
+        Label(miscFrame, text='Location:').place(x=5, y=20)
+        self.locationDropdown = tkinter.StringVar()
+        self.locationDropdown.set(self.storageLocations[0])
+        self.locationDropdownMenu = tkinter.OptionMenu(miscFrame, self.locationDropdown, *self.storageLocations)
+        self.locationDropdownMenu.config(background='white', highlightbackground="#7a7a7a", highlightthickness=1, width=17, border=0)
+        self.locationDropdownMenu.place(x=5, y=40)
+
+        # add a calendar to select date obtained
+        Label(miscFrame, text='Date Obtained:').place(x=5, y=70)
+        self.dateObtainedCalender = DateEntry(miscFrame, width=20, date_pattern='dd/mm/yyyy')
+        self.dateObtainedCalender.place(x=5, y=90)
+        self.noDateValue = tkinter.IntVar()
+        self.noDate = Checkbutton(miscFrame, text='Unknown date', variable=self.noDateValue, onvalue=1, offvalue=0, command=self.toggleDate)
+        self.noDate.place(x=5, y=115)
+
+        Label(miscFrame, text='Obtained How:').place(x=5, y=140)
+        self.obtainedHowDropdown = tkinter.StringVar()
+        self.obtainedHowDropdown.set(self.obtainedHow[0])
+        self.obtainedHowDropdownMenu = tkinter.OptionMenu(miscFrame, self.obtainedHowDropdown, *self.obtainedHow)
+        self.obtainedHowDropdownMenu.config(background='white', highlightbackground="#7a7a7a", highlightthickness=1, width=17, border=0)
+        self.obtainedHowDropdownMenu.place(x=5, y=160)
+
         self.setupInfoFrame()
 
     def setImageNone(self, feed):
@@ -69,16 +108,18 @@ class Gui:
         feed.image = blank
         
     def updateCameraFeed(self, img):
-        cameraFeedImg = ImageTk.PhotoImage(image=Image.fromarray(cv.cvtColor(cv.resize(img, (325, 500)), cv.COLOR_BGR2RGB)))
-        self.cameraFeed.configure(image=cameraFeedImg)
-        self.cameraFeed.image = cameraFeedImg
+        if self.closed == False:
+            cameraFeedImg = ImageTk.PhotoImage(image=Image.fromarray(cv.cvtColor(cv.resize(img, (325, 500)), cv.COLOR_BGR2RGB)))
+            self.cameraFeed.configure(image=cameraFeedImg)
+            self.cameraFeed.image = cameraFeedImg
 
     def updateTransformFeed(self, img):
-        self.cvSearchImage = img
-        transformFeedImg = ImageTk.PhotoImage(image=Image.fromarray(cv.cvtColor(cv.resize(img, (300, 400)), cv.COLOR_BGR2RGB)))
-        self.transformFeed.configure(image=transformFeedImg)
-        self.transformFeed.image = transformFeedImg
-
+        if self.closed == False:
+            self.cvSearchImage = img
+            transformFeedImg = ImageTk.PhotoImage(image=Image.fromarray(cv.cvtColor(cv.resize(img, (300, 400)), cv.COLOR_BGR2RGB)))
+            self.transformFeed.configure(image=transformFeedImg)
+            self.transformFeed.image = transformFeedImg
+        
     def captureCurrentTransform(self):
         self.updateCardFeed(self.cvSearchImage.copy())
 
@@ -99,7 +140,7 @@ class Gui:
 
     def setupInfoFrame(self):
         # Information frame with below search feed
-        self.infoFrame = Frame(self.root, width=304, height=130)
+        self.infoFrame = Frame(self.root, width=304, height=150)
         self.infoFrame.config(highlightbackground="black", highlightthickness=2)
         self.infoFrame.place(x=1080, y=450)
         self.nameLabel = Label(self.infoFrame, text='Name:').place(x=10, y=10)
@@ -107,14 +148,123 @@ class Gui:
         self.setLabel = Label(self.infoFrame, text='Set:').place(x=10, y=70)
         self.cardRarityLabel = Label(self.infoFrame, text='Rarity:').place(x=10, y=100)
 
+        self.cardDetailsSetup()
+
         # create a button but disable it until a card is found
-        self.addToCollectionBulkButton = Button(self.root, text='Add to Collection (Bulk)', command=self.addToCollection, state='disabled')
-        self.addToCollectionBulkButton.place(x=1160, y=590)
-        self.addToCollectionExtendedButton = Button(self.root, text='Add to Collection (Extended)', command=self.addToCollectionExtended, state='disabled')
-        self.addToCollectionExtendedButton.place(x=1150, y=620)
+        self.addToCollectionButton = Button(self.root, text='Add to Collection', command=self.addToCollection, state='disabled')
+        self.addToCollectionButton.place(x=1160, y=610)
+
+    def cardDetailsSetup(self):
+        conditionFrame = Frame(self.root, width=220, height=150)
+        conditionFrame.place(x=1384, y=50)
+        conditionFrame.config(highlightbackground="#d3d3d3", highlightthickness=1)
+        Label(conditionFrame, text='Condition:', font="Helvetica 9 bold").place(x=5, y=0)
+        self.condition = IntVar(value=1)
+        condition1 = Radiobutton(conditionFrame, text='Mint', variable=self.condition, value=1, tristatevalue=0)
+        condition1.place(x=5, y=20)
+        condition2 = Radiobutton(conditionFrame, text='Near Mint', variable=self.condition, value=2, tristatevalue=0)
+        condition2.place(x=5, y=40)
+        condition3 = Radiobutton(conditionFrame, text='Light Played', variable=self.condition, value=3, tristatevalue=0)
+        condition3.place(x=5, y=60)
+        condition4 = Radiobutton(conditionFrame, text='Played', variable=self.condition, value=4, tristatevalue=0)
+        condition4.place(x=5, y=80)
+        condition5 = Radiobutton(conditionFrame, text='Damaged', variable=self.condition, value=5, tristatevalue=0)
+        condition5.place(x=5, y=100)
+        
+        # grading button
+        self.gradingButton = Button(conditionFrame, text='Grading', command=self.openGradingWindow, state='disabled')
+        self.gradingButton.place(x=157, y=5)
+
+        # Printing Type frame
+        printingTypeFrame = Frame(self.root, width=220, height=220)
+        printingTypeFrame.place(x=1384, y=185)
+        printingTypeFrame.config(highlightbackground="#d3d3d3", highlightthickness=1)
+        Label(printingTypeFrame, text='Printing Type:', font="Helvetica 9 bold").place(x=5, y=0)
+        self.printingType = tkinter.StringVar()
+        self.printingType1 = Radiobutton(printingTypeFrame, text='Normal', variable=self.printingType, value="Normal", tristatevalue=0)
+        self.printingType1.place(x=5, y=20)
+        self.printingType2 = Radiobutton(printingTypeFrame, text='Holofoil', variable=self.printingType, value="Holofoil", tristatevalue=0)
+        self.printingType2.place(x=5, y=40)
+        self.printingType3 = Radiobutton(printingTypeFrame, text='Reverse Holofoil', variable=self.printingType, value="Reverse Holofoil", tristatevalue=0)
+        self.printingType3.place(x=5, y=60)
+        self.printingType4 = Radiobutton(printingTypeFrame, text='1st Edition', variable=self.printingType, value="1st Edition", tristatevalue=0) 
+        self.printingType4.place(x=5, y=80)
+        self.printingType5 = Radiobutton(printingTypeFrame, text='1st Edition Holofoil', variable=self.printingType, value="1st Edition Holofoil", tristatevalue=0)
+        self.printingType5.place(x=5, y=100)
+        self.printingType6 = Radiobutton(printingTypeFrame, text='Unlimited', variable=self.printingType, value="Unlimited", tristatevalue=0)
+        self.printingType6.place(x=5, y=120)
+        self.printingType7 = Radiobutton(printingTypeFrame, text='Unlimited Holofoil', variable=self.printingType, value="Unlimited Holofoil", tristatevalue=0)
+        self.printingType7.place(x=5, y=140)
+        self.setPrintingTypes()
+
+        self.overridePrintingTypeValue = tkinter.IntVar()
+        self.overridePrintingType = Checkbutton(printingTypeFrame, text='Override', variable=self.overridePrintingTypeValue, onvalue=1, offvalue=0, command=self.togglePrintingType)
+        self.overridePrintingType.place(x=5, y=170)
+
+    def setPrintingTypes(self):
+        if self.foundCard is not None:
+            if self.foundCard["PrintingTypes"] is not None:
+                if "normal" not in self.foundCard["PrintingTypes"]:
+                    self.printingType1.config(state='disabled')
+                if "holofoil" not in self.foundCard["PrintingTypes"]:
+                    self.printingType2.config(state='disabled')
+                if "reverseHolofoil" not in self.foundCard["PrintingTypes"]:
+                    self.printingType3.config(state='disabled')
+                if "1stEdition" not in self.foundCard["PrintingTypes"]:
+                    self.printingType4.config(state='disabled')
+                if "1stEditionHolofoil" not in self.foundCard["PrintingTypes"]:
+                    self.printingType5.config(state='disabled')
+                if "unlimited" not in self.foundCard["PrintingTypes"]:
+                    self.printingType6.config(state='disabled')
+                if "unlimitedHolofoil" not in self.foundCard["PrintingTypes"]:
+                    self.printingType7.config(state='disabled')
+            else: 
+                self.printingType1.config(state='normal')
+                self.printingType2.config(state='normal')
+                self.printingType3.config(state='normal')
+                self.printingType4.config(state='normal')
+                self.printingType5.config(state='normal')
+                self.printingType6.config(state='normal')
+                self.printingType7.config(state='normal')
+
+            # set the default printing type to the first available printing type
+            if self.printingType1['state'] == 'normal':
+                self.printingType.set("Normal")
+            elif self.printingType2['state'] == 'normal':
+                self.printingType.set("Holofoil")
+            elif self.printingType3['state'] == 'normal':
+                self.printingType.set("Reverse Holofoil")
+            elif self.printingType4['state'] == 'normal':
+                self.printingType.set("1st Edition")
+            elif self.printingType5['state'] == 'normal':
+                self.printingType.set("1st Edition Holofoil")
+            elif self.printingType6['state'] == 'normal':
+                self.printingType.set("Unlimited")
+            elif self.printingType7['state'] == 'normal':
+                self.printingType.set("Unlimited Holofoil")
+        
+
+    def togglePrintingType(self):
+        if self.overridePrintingTypeValue.get() == 1:
+            self.printingType1.config(state='normal')
+            self.printingType2.config(state='normal')
+            self.printingType3.config(state='normal')
+            self.printingType4.config(state='normal')
+            self.printingType5.config(state='normal')
+            self.printingType6.config(state='normal')
+            self.printingType7.config(state='normal')
+        else:
+            self.setPrintingTypes()
+
+    def toggleDate(self):
+        if self.noDateValue.get() == 1:
+            self.dateObtainedCalender.config(state='disable')
+        else:
+            self.dateObtainedCalender.config(state='normals')
 
     def updateInfoFrame(self, card):
         self.infoFrame.destroy()
+        self.foundCard = card
         self.setupInfoFrame()
         self.nameLabel = Label(self.infoFrame, text=f"Name: {card['Name']}").place(x=10, y=10)
 
@@ -129,15 +279,34 @@ class Gui:
         self.cardNumberLabel = Label(self.infoFrame, text=f"Card Number: {cardNumberLabeltext}").place(x=10, y=40)
         self.setLabel = Label(self.infoFrame, text=f"Set: {card['Set']['Name']}").place(x=10, y=70)
         self.cardRarityLabel = Label(self.infoFrame, text=f"Rarity: {card['Rarity']}").place(x=10, y=100)
-        self.addToCollectionExtendedButton.config(state='normal')
-        self.addToCollectionBulkButton.config(state='normal')
-        self.foundCard = card
+        self.addToCollectionButton.config(state='normal')
+        self.gradingButton.config(state='normal')
+
+    def openGradingWindow(self):
+        dialog = Grading_Dialog(self.root, self.personalGrading, self.searchFeed.image)
+
+        # wait til the window is closed before continuing the program
+        self.root.wait_window(dialog.new)
+        self.personalGrading = dialog.personalGrading
+        
 
     def addToCollection(self):
-        print(self.foundCard)
+        _newCard = CardData(self.foundCard)
+        _newCard.Condition = self.condition.get()
+        _newCard.PrintingType = self.printingType.get()
+        _newCard.Location = self.locationDropdown.get()
+        _newCard.ObtainedHow = self.obtainedHowDropdown.get()
 
-    def addToCollectionExtended(self):
-        AddCardDialog(self.root, self.googleSheets, self.foundCard)
+        if self.noDateValue.get() != 1:
+            _newCard.DateObtained = self.dateObtainedCalender.get_date()
+
+        print(_newCard)
+
+
+    def onClose(self):
+        self.closed = True
+        self.root.destroy()
+
 
         
         
