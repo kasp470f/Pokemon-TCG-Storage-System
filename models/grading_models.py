@@ -1,4 +1,11 @@
 from models.grading_scale import getGradingScaleName
+from enum import Enum
+
+class AreaEnum(Enum):
+    Corners = 1
+    Edges = 2
+    Centering = 3
+    Surface = 4
 
 class GradingValue:
     Value = 0
@@ -50,7 +57,10 @@ class PersonalGrading:
 
     def totalScore(self):
         avg = (self.Corners.score() + self.Edges.score() + self.Centering.score() + self.Surface.score()) / 4
-        return round(avg, 1)
+        if avg.is_integer():
+            return int(avg)
+        else:
+            return round(avg, 1)
     
     def totalScoreName(self):
         return getGradingScaleName(self.totalScore())
