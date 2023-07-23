@@ -39,7 +39,7 @@ def videoLoop():
                     gui.updateSearchFeed(foundCard)
 
 
-videoThread = threading.Thread(target=videoLoop, args=(), name="Video Thread", daemon=True)
+videoThread = threading.Thread(target=videoLoop, args=(), name="Video/Cam Thread", daemon=True)
 videoThread.start()
 root.protocol("WM_DELETE_WINDOW", gui.onClose)
 root.mainloop()
