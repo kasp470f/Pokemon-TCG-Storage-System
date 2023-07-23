@@ -25,7 +25,8 @@ gradingScaleDictionary = {
     1.5: "Fair/Good",
     1.0: "Fair",
     0.5: "Poor",
-    0.3: "Poor -"
+    0.3: "Poor -",
+    0.0: "Insufficient Data"
 }
 
 def getGradingScaleName(score: float):
