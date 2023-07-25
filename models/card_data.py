@@ -1,23 +1,26 @@
 import datetime
+from models.grading_models import RawGrading
 
-class CardData:
-    CardImage = None
-    CardId = None
-    Name = None
-    CardType = None
-    CardSubType = None
-    CardSetId = None
-    Rarity = None
-    SetSymbol = None
-    SetName = None
-    PrintingType = None
+class CardDto:
+    Id: int = None
+    CardImage: str = None
+    CardId: str = None
+    Name: str = None
+    CardType: str = None
+    CardSubType: str = None
+    CardSetId: str = None
+    Rarity: str = None
+    SetSymbol: str = None
+    SetName: str = None
+    PrintingType: str = None
     Condition = None
-    ConditionNotes = None
-    Location = None
-    DateObtained = None
-    ObtainedHow = None
-    CardMarket = None
-    Comment = None
+    ConditionNotes: str = None
+    Grading: RawGrading = None
+    Location: str = None
+    DateObtained: datetime = None
+    ObtainedHow: str = None
+    CardMarket: str = None
+    Comment: str = None
 
     def __init__(self, card):
         self.CardImage = card['Images']['large']

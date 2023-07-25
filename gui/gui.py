@@ -3,12 +3,12 @@ from tkcalendar import DateEntry
 import tkinter
 from PIL import Image, ImageTk
 from gui.grading_dialog import Grading_Dialog
-from models.card_data import CardData
+from models.card_data import CardDto
 import cv2 as cv
 import numpy as np
 
 from data.dataset import url_to_image
-from models.grading_models import PersonalGrading
+from models.grading_models import RawGrading
 
 class Gui:
     cvSearchImage = None
@@ -24,7 +24,7 @@ class Gui:
     def __init__(self, root, googleSheets):
         self.root = root
         self.googleSheets = googleSheets
-        self.personalGrading = PersonalGrading()
+        self.rawGrading = RawGrading()
         root.title("Pokémon Card Scanner")
         root.geometry('1600x800')
         root.resizable(False, False)
@@ -283,15 +283,15 @@ class Gui:
         self.gradingButton.config(state='normal')
 
     def openGradingWindow(self):
-        dialog = Grading_Dialog(self.root, self.personalGrading, self.searchFeed.image)
+        dialog = Grading_Dialog(self.root, self.rawGrading, self.searchFeed.image)
 
         # wait til the window is closed before continuing the program
         self.root.wait_window(dialog.new)
-        self.personalGrading = dialog.personalGrading
+        self.rawGrading = dialog.rawGrading
         
 
     def addToCollection(self):
-        _newCard = CardData(self.foundCard)
+        _newCard = CardDto(self.foundCard)
         _newCard.Condition = self.condition.get()
         _newCard.PrintingType = self.printingType.get()
         _newCard.Location = self.locationDropdown.get()
