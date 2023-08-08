@@ -92,23 +92,31 @@ class Grading_Dialog:
     def setupCorners(self):
         color = "white"
         borderColor = "black"
-        topLeftCorner_p1 = Label(self.imageFrame, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(1, AreaEnum.Corners))
-        topLeftCorner_p2 = Label(self.imageFrame, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(1, AreaEnum.Corners))
-        topLeftCorner_p1.place(x=5, y=5)
-        topLeftCorner_p2.place(x=5, y=5)
 
-        topRightCorner_p1 = Label(self.imageFrame, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(2, AreaEnum.Corners))
-        topRightCorner_p2 = Label(self.imageFrame, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(2, AreaEnum.Corners))
+        self.topLeftCorner = Frame(self.imageFrame, width=25, height=25, cursor="hand2", bg="")
+        Frame(self.topLeftCorner, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1).place(x=0, y=0)
+        Frame(self.topLeftCorner, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1).place(x=0, y=0)
+        self.topLeftCorner.bind("<Button-1>", lambda event: self.selectedArea(1, AreaEnum.Corners))
+        self.topLeftCorner.place(x=5, y=5)
+
+        topRightCorner_p1 = Frame(self.imageFrame, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1)
+        topRightCorner_p2 = Frame(self.imageFrame, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1)
+        # topRightCorner_p1.bind("<Button-1>", lambda event: self.selectedArea(2, AreaEnum.Corners))
+        # topRightCorner_p2.bind("<Button-1>", lambda event: self.selectedArea(2, AreaEnum.Corners))
         topRightCorner_p1.place(x=275, y=5)
         topRightCorner_p2.place(x=290, y=5)
 
-        bottomLeftCorner_p1 = Label(self.imageFrame, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(3, AreaEnum.Corners))
-        bottomLeftCorner_p2 = Label(self.imageFrame, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(3, AreaEnum.Corners))
+        bottomLeftCorner_p1 = Frame(self.imageFrame, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1)
+        bottomLeftCorner_p2 = Frame(self.imageFrame, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1)
+        # bottomLeftCorner_p1.bind("<Button-1>", lambda event: self.selectedArea(3, AreaEnum.Corners))
+        # bottomLeftCorner_p2.bind("<Button-1>", lambda event: self.selectedArea(3, AreaEnum.Corners))
         bottomLeftCorner_p1.place(x=5, y=390)
         bottomLeftCorner_p2.place(x=5, y=375)
 
-        bottomRightCorner_p1 = Label(self.imageFrame, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(4, AreaEnum.Corners))
-        bottomRightCorner_p2 = Label(self.imageFrame, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1, command=lambda: self.selectedArea(4, AreaEnum.Corners))
+        bottomRightCorner_p1 = Frame(self.imageFrame, width=20, height=5, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1)
+        bottomRightCorner_p2 = Frame(self.imageFrame, width=5, height=20, bg=color, cursor="hand2", highlightbackground=borderColor, highlightthickness=1)
+        # bottomRightCorner_p1.bind("<Button-1>", lambda event: self.selectedArea(4, AreaEnum.Corners))
+        # bottomRightCorner_p2.bind("<Button-1>", lambda event: self.selectedArea(4, AreaEnum.Corners))
         bottomRightCorner_p1.place(x=275, y=390)
         bottomRightCorner_p2.place(x=290, y=375)
 
@@ -128,6 +136,8 @@ class Grading_Dialog:
             pass
         elif area == AreaEnum.Surface:
             pass
+
+        print(area, id)
 
 
 
