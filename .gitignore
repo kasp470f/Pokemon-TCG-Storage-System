@@ -6,3 +6,5 @@ gui/__pycache__/gui.cpython-311.pyc
 test.py
 sheets_crendentials.json
 .vscode
+storage.db
+.env

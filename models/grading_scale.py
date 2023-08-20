@@ -1,4 +1,4 @@
-# using CGC grading scale
+# Based on CGC grading scale
 gradingScaleDictionary = {
     10: "Gem Mint",
     9.9: "Mint",

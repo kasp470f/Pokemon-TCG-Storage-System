@@ -9,7 +9,7 @@ flattenMaxHeight = 400
 
 def detectCard(img):
     # remove black bars from the frame
-    img = img[60:img.shape[0]-60, 0:img.shape[1]]
+    img = remove_black_bars(img)
 
     # convert to grayscale
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -40,7 +40,7 @@ def detectCard(img):
     # approximate the corner points of the contours if it has 4 corners
     approx_corners = [cv.approxPolyDP(c, 0.01 * cv.arcLength(c, True), True) for c in contours]
     approx_corners = sorted(approx_corners, key=cv.contourArea, reverse=True)[:1]
-
+    
     if len(approx_corners) == 0:
         return img, None
 
@@ -51,10 +51,11 @@ def detectCard(img):
         for p in c:
             cv.circle(detectedImg, (p[0][0], p[0][1]), 10, color[index % len(color)], -1)
             index = index + 1
-
+    
     return detectedImg, approx_corners
 
 def transformCard(img, approx_corners):
+    img = remove_black_bars(img)
     # using the approximated corner points, flatten the image into a top-down view of the card
     # first, find the top-left and bottom-right corner points
     top_left = approx_corners[0][0][0]
@@ -86,3 +87,21 @@ def transformCard(img, approx_corners):
     # apply the transformation matrix to the image
     warpedImg = cv.warpPerspective(img, matrix, (flattenMaxWidth, flattenMaxHeight))
     return warpedImg
+
+def remove_black_bars(img):
+    # Convert the image to grayscale
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+    # Threshold the image to create a binary mask
+    _, mask = cv.threshold(gray, 1, 255, cv.THRESH_BINARY)
+
+    # Find the contours of the mask
+    contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    # Find the bounding box of the contours
+    x, y, w, h = cv.boundingRect(contours[0])
+
+    # Crop the image to the bounding box
+    cropped = img[y:y+h, x:x+w]
+
+    return cropped

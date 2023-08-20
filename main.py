@@ -1,16 +1,14 @@
-import sys
-sys.dont_write_bytecode = True
+from services.database import Database
 import threading
 import cv2 as cv
 from tkinter import Tk
 from data.dataset import findMatch
 from services.detector import detectCard, transformCard
 from gui.gui import Gui
-from services.spreadsheet import GoogleSheets
 
 root = Tk()
-googleSheets = GoogleSheets()
-gui = Gui(root, googleSheets)
+db = Database()
+gui = Gui(root, db)
 
 cap = cv.VideoCapture(2)
 

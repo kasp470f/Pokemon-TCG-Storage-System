@@ -1,14 +1,15 @@
-from tkinter import Checkbutton, Frame, Image, IntVar, Radiobutton, Label, Button
+from tkinter import Checkbutton, Frame, Image, IntVar, Radiobutton, Label, Button, Tk
 from tkcalendar import DateEntry
 import tkinter
 from PIL import Image, ImageTk
 from gui.grading_dialog import Grading_Dialog
-from models.card_data import CardDto
+from models.card_dto import CardDto
 import cv2 as cv
 import numpy as np
 
 from data.dataset import url_to_image
 from models.grading_models import RawGrading
+from services.database import Database
 
 class Gui:
     cvSearchImage = None
@@ -21,9 +22,9 @@ class Gui:
     
     obtainedHow =  [ "Opened", "Bought", "Traded", "Other" ]
 
-    def __init__(self, root, googleSheets):
+    def __init__(self, root: Tk, database: Database):
         self.root = root
-        self.googleSheets = googleSheets
+        self.database = database
         self.rawGrading = RawGrading()
         root.title("Pokémon Card Scanner")
         root.geometry('1600x800')
@@ -172,8 +173,8 @@ class Gui:
         condition5.place(x=5, y=100)
         
         # grading button
-        self.gradingButton = Button(conditionFrame, text='Grading', command=self.openGradingWindow, state='disabled')
-        self.gradingButton.place(x=157, y=5)
+        # self.gradingButton = Button(conditionFrame, text='Grading', command=self.openGradingWindow, state='disabled')
+        # self.gradingButton.place(x=157, y=5)
 
         # Printing Type frame
         printingTypeFrame = Frame(self.root, width=220, height=220)
@@ -280,7 +281,7 @@ class Gui:
         self.setLabel = Label(self.infoFrame, text=f"Set: {card['Set']['Name']}").place(x=10, y=70)
         self.cardRarityLabel = Label(self.infoFrame, text=f"Rarity: {card['Rarity']}").place(x=10, y=100)
         self.addToCollectionButton.config(state='normal')
-        self.gradingButton.config(state='normal')
+        # self.gradingButton.config(state='normal')
 
     def openGradingWindow(self):
         dialog = Grading_Dialog(self.root, self.rawGrading, self.searchFeed.image)
@@ -300,7 +301,8 @@ class Gui:
         if self.noDateValue.get() != 1:
             _newCard.DateObtained = self.dateObtainedCalender.get_date()
 
-        print(_newCard)
+        self.database.insert_card(_newCard)
+
 
 
     def onClose(self):
