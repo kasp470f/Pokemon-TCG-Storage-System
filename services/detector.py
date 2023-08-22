@@ -98,6 +98,9 @@ def remove_black_bars(img):
     # Find the contours of the mask
     contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
+    if len(contours) == 0:
+        return img
+
     # Find the bounding box of the contours
     x, y, w, h = cv.boundingRect(contours[0])
 
