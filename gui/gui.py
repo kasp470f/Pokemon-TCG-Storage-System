@@ -25,7 +25,7 @@ class Gui:
     def __init__(self, root: Tk, database: Database):
         self.root = root
         self.database = database
-        self.rawGrading = RawGrading()
+        # self.rawGrading = RawGrading()
         root.title("Pokémon Card Scanner")
         root.geometry('1600x800')
         root.resizable(False, False)
