@@ -1,8 +1,9 @@
-from tkinter import Checkbutton, Frame, Image, IntVar, Radiobutton, Label, Button, Tk
+from tkinter import Checkbutton, Frame, Image, IntVar, Menu, OptionMenu, Radiobutton, Label, Button, Tk
 from tkcalendar import DateEntry
 import tkinter
 from PIL import Image, ImageTk
 from gui.grading_dialog import Grading_Dialog
+from gui.location_dialog import Location_Dialog
 from models.card_dto import CardDto
 import cv2 as cv
 import numpy as np
@@ -16,21 +17,31 @@ class Gui:
     searchImg = None
     searched = False
     foundCard = None
-
-    storageLocations = ["Storage Box 1", "Storage Box 2", "Storage Box 3", "Storage Box 4", "Storage Box 5", "Storage Box 6", 
-                        "Storage Box 7", "Storage Box 8", "Storage Box 9", "Trade Binder", "Union Binder", "Toploader Binder", "Playable Tin", "Other"]
     
     obtainedHow =  [ "Opened", "Bought", "Traded", "Other" ]
 
     def __init__(self, root: Tk, database: Database):
         self.root = root
+        self.menu = Menu(root)
+
+        self.root.config(menu=self.menu)
         self.database = database
+        self.storageLocations = self.database.get_locations()
         # self.rawGrading = RawGrading()
         root.title("Pokémon Card Scanner")
         root.geometry('1600x800')
         root.resizable(False, False)
+        root.wm_iconbitmap('assets/icon.ico')  
+
+        self.setupMenu()
         self.setupGui(root)
         self.closed = False
+
+    def setupMenu(self):
+        fileMenu = Menu(self.menu, tearoff=0)
+        fileMenu.add_command(label='Locations', command=self.openLocationWindow)
+        fileMenu.add_command(label='Exit', command=self.onClose)
+        self.menu.add_cascade(label='File', menu=fileMenu)
 
     def setupGui(self, root):
         # Camera frame which contains the detected image
@@ -72,30 +83,27 @@ class Gui:
         self.setImageNone(self.searchFeed)
 
         # Misc frame
-        miscFrame = Frame(self.root, width=220, height=197)
-        miscFrame.place(x=1384, y=403)
-        miscFrame.config(highlightbackground="#d3d3d3", highlightthickness=1)
-        Label(miscFrame, text='Miscellaneous:', font="Helvetica 9 bold").place(x=5, y=0)
+        self.miscFrame = Frame(self.root, width=220, height=197)
+        self.miscFrame.place(x=1384, y=403)
+        self.miscFrame.config(highlightbackground="#d3d3d3", highlightthickness=1)
+        Label(self.miscFrame, text='Miscellaneous:', font="Helvetica 9 bold").place(x=5, y=0)
 
-        Label(miscFrame, text='Location:').place(x=5, y=20)
-        self.locationDropdown = tkinter.StringVar()
-        self.locationDropdown.set(self.storageLocations[0])
-        self.locationDropdownMenu = tkinter.OptionMenu(miscFrame, self.locationDropdown, *self.storageLocations)
-        self.locationDropdownMenu.config(background='white', highlightbackground="#7a7a7a", highlightthickness=1, width=17, border=0)
-        self.locationDropdownMenu.place(x=5, y=40)
-
+        Label(self.miscFrame, text='Location:').place(x=5, y=20)
+        self.locationDropdown = tkinter.Variable()
+        self.refreshLocationDropdown();
+        
         # add a calendar to select date obtained
-        Label(miscFrame, text='Date Obtained:').place(x=5, y=70)
-        self.dateObtainedCalender = DateEntry(miscFrame, width=20, date_pattern='dd/mm/yyyy')
+        Label(self.miscFrame, text='Date Obtained:').place(x=5, y=70)
+        self.dateObtainedCalender = DateEntry(self.miscFrame, width=20, date_pattern='dd/mm/yyyy')
         self.dateObtainedCalender.place(x=5, y=90)
         self.noDateValue = tkinter.IntVar()
-        self.noDate = Checkbutton(miscFrame, text='Unknown date', variable=self.noDateValue, onvalue=1, offvalue=0, command=self.toggleDate)
+        self.noDate = Checkbutton(self.miscFrame, text='Unknown date', variable=self.noDateValue, onvalue=1, offvalue=0, command=self.toggleDate)
         self.noDate.place(x=5, y=115)
 
-        Label(miscFrame, text='Obtained How:').place(x=5, y=140)
+        Label(self.miscFrame, text='Obtained How:').place(x=5, y=140)
         self.obtainedHowDropdown = tkinter.StringVar()
         self.obtainedHowDropdown.set(self.obtainedHow[0])
-        self.obtainedHowDropdownMenu = tkinter.OptionMenu(miscFrame, self.obtainedHowDropdown, *self.obtainedHow)
+        self.obtainedHowDropdownMenu = tkinter.OptionMenu(self.miscFrame, self.obtainedHowDropdown, *self.obtainedHow)
         self.obtainedHowDropdownMenu.config(background='white', highlightbackground="#7a7a7a", highlightthickness=1, width=17, border=0)
         self.obtainedHowDropdownMenu.place(x=5, y=160)
 
@@ -289,13 +297,36 @@ class Gui:
         # wait til the window is closed before continuing the program
         self.root.wait_window(dialog.new)
         self.rawGrading = dialog.rawGrading
+
+    def openLocationWindow(self):
+        dialog = Location_Dialog(self.root, self.database)
+
+        # wait til the window is closed before continuing the program
+        self.root.wait_window(dialog.new)
+        self.refreshLocationDropdown()
+        
+    def refreshLocationDropdown(self):
+        self.storageLocations = self.database.get_locations()
+        if len(self.storageLocations) > 0:
+            self.locationDropdownMenu = OptionMenu(self.miscFrame, self.locationDropdown, *[location.name for location in self.storageLocations])
+        else:
+            self.locationDropdownMenu = OptionMenu(self.miscFrame, self.locationDropdown, "None")
+        self.locationDropdownMenu.config(background='white', highlightbackground="#7a7a7a", highlightthickness=1, width=17, border=0)
+        self.locationDropdownMenu.place(x=5, y=40)
+        
         
 
     def addToCollection(self):
         _newCard = CardDto(self.foundCard)
         _newCard.Condition = self.condition.get()
         _newCard.PrintingType = self.printingType.get()
-        _newCard.Location = self.locationDropdown.get()
+
+        # find the location object from the name of the location
+        for location in self.storageLocations:
+            if location.name == self.locationDropdown.get():
+                _newCard.Location = location
+                break
+        
         _newCard.ObtainedHow = self.obtainedHowDropdown.get()
 
         if self.noDateValue.get() != 1:

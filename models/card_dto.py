@@ -1,5 +1,6 @@
 import datetime
 from models.grading_models import RawGrading
+from models.location_dto import LocationDto
 
 class CardDto:
     Id: int = None
@@ -14,7 +15,7 @@ class CardDto:
     PrintingType: str = None
     Condition = None
     ConditionNotes: str = None
-    Location: str = None
+    Location: LocationDto = None
     DateObtained: datetime = None
     ObtainedHow: str = None
     CardMarket: str = None
