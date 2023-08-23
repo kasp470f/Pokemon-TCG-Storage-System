@@ -3,6 +3,7 @@
 import sqlite3
 
 from models.card_dto import CardDto
+from models.location_dto import LocationDto
 
 database_name = "storage.db"
 
@@ -26,11 +27,18 @@ class Database:
             printing_type TEXT,
             condition INTEGER,
             condition_notes TEXT,
-            location TEXT,
+            location INTEGER REFERENCES locations(id),
             date_obtained DATE,
             obtained_how TEXT,
             card_market TEXT,
             comment TEXT,
+            date_created DATETIME DEFAULT CURRENT_TIMESTAMP
+        )""")
+
+        # Locations table
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS locations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
             date_created DATETIME DEFAULT CURRENT_TIMESTAMP
         )""")
 
@@ -64,7 +72,7 @@ class Database:
             'printing_type': card.PrintingType,
             'condition': card.Condition,
             'condition_notes': card.ConditionNotes,
-            'location': card.Location,
+            'location': card.Location.id,
             'date_obtained': card.DateObtained,
             'obtained_how': card.ObtainedHow,
             'card_market': card.CardMarket,
@@ -73,3 +81,37 @@ class Database:
 
         self.conn.commit()
         print(f"Inserted card {card.Name} into database")
+
+    def insert_location(self, location):
+        self.cur.execute("""INSERT INTO locations VALUES (
+            NULL,
+            :name,
+            datetime('now')
+        )""", {
+            'name': location.Name
+        })
+
+        self.conn.commit()
+        print(f"Inserted location {location.Name} into database")
+
+    def get_locations(self) -> list[LocationDto]:
+        self.cur.execute("SELECT * FROM locations")
+        rows = self.cur.fetchall()
+        
+        return [LocationDto(row) for row in rows]
+    
+    def insert_location(self, name):
+        self.cur.execute("""INSERT INTO locations VALUES (
+            NULL,
+            :name,
+            datetime('now')
+        )""", {
+            'name': name
+        })
+
+        self.conn.commit()
+    
+    def delete_location(self, id):
+        self.cur.execute("DELETE FROM locations WHERE id=?", (id,))
+        self.conn.commit()
+
