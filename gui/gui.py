@@ -40,9 +40,9 @@ class Gui:
 
     def setupMenu(self):
         fileMenu = Menu(self.menu, tearoff=0)
-        fileMenu.add_command(label='Locations', command=self.openLocationWindow)
         fileMenu.add_command(label='Exit', command=self.onClose)
         self.menu.add_cascade(label='File', menu=fileMenu)
+        self.menu.add_command(label='Locations', command=self.openLocationWindow)
 
     def setupGui(self, root):
         # Camera frame which contains the detected image
