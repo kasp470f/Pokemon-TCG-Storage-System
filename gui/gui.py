@@ -4,6 +4,7 @@ import tkinter
 from PIL import Image, ImageTk
 from gui.grading_dialog import Grading_Dialog
 from gui.location_dialog import Location_Dialog
+from models.card import CardClass
 from models.card_dto import CardDto
 import cv2 as cv
 import numpy as np
@@ -13,12 +14,12 @@ from models.grading_models import RawGrading
 from services.database import Database
 
 class Gui:
-    cvSearchImage = None
-    searchImg = None
-    searched = False
-    foundCard = None
+    cvSearchImage: np.ndarray = None
+    searchImg: np.ndarray = None
+    searched: bool = False
+    foundCard: CardClass = None
     
-    obtainedHow =  [ "Opened", "Bought", "Traded", "Other" ]
+    obtainedHow: list[str] =  [ "Opened", "Bought", "Traded", "Other" ]
 
     def __init__(self, root: Tk, database: Database):
         self.root = root
@@ -109,7 +110,7 @@ class Gui:
 
         self.setupInfoFrame()
 
-    def setImageNone(self, feed):
+    def setImageNone(self, feed) -> np.ndarray:
         blank = np.zeros((400, 300, 3), np.uint8)
         blank.fill(255)
         blank = ImageTk.PhotoImage(image=Image.fromarray(cv.cvtColor(blank, cv.COLOR_BGR2RGB)))
@@ -309,6 +310,7 @@ class Gui:
         self.storageLocations = self.database.get_locations()
         if len(self.storageLocations) > 0:
             self.locationDropdownMenu = OptionMenu(self.miscFrame, self.locationDropdown, *[location.name for location in self.storageLocations])
+            self.locationDropdownMenu.setvar(self.locationDropdownMenu.cget("textvariable"), self.storageLocations[0].name)
         else:
             self.locationDropdownMenu = OptionMenu(self.miscFrame, self.locationDropdown, "None")
         self.locationDropdownMenu.config(background='white', highlightbackground="#7a7a7a", highlightthickness=1, width=17, border=0)
@@ -326,12 +328,16 @@ class Gui:
             if location.name == self.locationDropdown.get():
                 _newCard.Location = location
                 break
+
+        if(_newCard.Location is None):
+            print("No location found")
+            return
         
         _newCard.ObtainedHow = self.obtainedHowDropdown.get()
 
         if self.noDateValue.get() != 1:
             _newCard.DateObtained = self.dateObtainedCalender.get_date()
-
+        
         self.database.insert_card(_newCard)
 
 

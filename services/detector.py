@@ -1,13 +1,14 @@
+from typing import Any
 import cv2 as cv
 import numpy as np
 
-blur_value = 5
-contour_size = 1000
+blur_value: int = 5
+contour_size: int = 1000
 
-flattenMaxWidth = 300
-flattenMaxHeight = 400
+flattenMaxWidth: int = 300
+flattenMaxHeight: int = 400
 
-def detectCard(img):
+def detectCard(img: np.ndarray) -> (tuple[np.ndarray, None] | tuple[np.ndarray, list[np.ndarray]]):
     # remove black bars from the frame
     img = remove_black_bars(img)
 
@@ -54,7 +55,7 @@ def detectCard(img):
     
     return detectedImg, approx_corners
 
-def transformCard(img, approx_corners):
+def transformCard(img: np.ndarray, approx_corners: list[np.ndarray]) -> np.ndarray:
     img = remove_black_bars(img)
     # using the approximated corner points, flatten the image into a top-down view of the card
     # first, find the top-left and bottom-right corner points
@@ -88,7 +89,7 @@ def transformCard(img, approx_corners):
     warpedImg = cv.warpPerspective(img, matrix, (flattenMaxWidth, flattenMaxHeight))
     return warpedImg
 
-def remove_black_bars(img):
+def remove_black_bars(img) -> np.ndarray:
     # Convert the image to grayscale
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
