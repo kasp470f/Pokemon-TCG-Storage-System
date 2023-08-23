@@ -1,7 +1,9 @@
 import json
 from urllib.request import Request, urlopen;
 import cv2 as cv;
-import numpy as np;
+import numpy as np
+
+from models.card import CardClass;
 
 hamming_distance_threshold = 80;
 matches_length = 5;
@@ -18,7 +20,7 @@ def hashString_to_array(hashstring):
     hasharray = [True if x == '1' else False for x in hasharray]
     return hasharray
 
-def findMatch(image):
+def findMatch(image) -> CardClass | None:
     hash = toHash(image)
 
     matches = []
@@ -52,7 +54,7 @@ def toHash(img):
     hash = (resized > avg).flatten()
     return hash
     
-def url_to_image(url):
+def url_to_image(url) -> np.ndarray | None:
     # download the image, convert it to a NumPy array, and then read
     # it into OpenCV format
     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})

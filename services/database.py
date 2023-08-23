@@ -1,5 +1,3 @@
-# create a new database file and add a table
-# import sqlite3 library
 import sqlite3
 
 from models.card_dto import CardDto

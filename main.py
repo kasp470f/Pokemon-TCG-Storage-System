@@ -12,10 +12,8 @@ gui = Gui(root, db)
 
 cap = cv.VideoCapture(2)
 
-# foundCard = None
-
 def videoLoop():
-    global root, cap, detectCounter, foundCard
+    global root, cap, foundCard
 
     while True:
         ret, frame = cap.read()
@@ -24,15 +22,17 @@ def videoLoop():
             detectedImg, approx_corners = detectCard(frame.copy())
             gui.updateCameraFeed(detectedImg)
 
-            if approx_corners is not None:
-                    transformImg = transformCard(frame.copy(), approx_corners)
-                    gui.updateTransformFeed(transformImg)
-            else:
-                gui.updateTransformFeed(frame)
+        else:
+            gui.updateTransformFeed(frame)
+
+        if approx_corners is not None:
+            transformImg = transformCard(frame.copy(), approx_corners)
+            gui.updateTransformFeed(transformImg)
 
             if gui.searchImg is not None and gui.searched == False:
                 gui.searched = True
                 foundCard = findMatch(gui.cvSearchImage)
+
                 if foundCard is not None:
                     gui.updateSearchFeed(foundCard)
 
