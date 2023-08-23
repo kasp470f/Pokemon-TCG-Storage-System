@@ -13,7 +13,7 @@ class Location_Dialog:
         self.new.geometry('900x500')
         self.new.resizable(False, False)
         self.new.title("Location Management")
-        self.new.wm_iconbitmap('assets/icon.ico')
+        self.new.wm_iconbitmap('assets/icons/icon.ico')  
         self.db = database
 
         self.setupGui()
