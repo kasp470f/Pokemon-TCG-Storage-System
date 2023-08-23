@@ -86,8 +86,8 @@ def transformCard(img: np.ndarray, approx_corners: list[np.ndarray]) -> np.ndarr
     # get the transformation matrix
     matrix = cv.getPerspectiveTransform(pts1, pts2)
     # apply the transformation matrix to the image
-    warpedImg = cv.warpPerspective(img, matrix, (flattenMaxWidth, flattenMaxHeight))
-    return warpedImg
+    transformedImg = cv.warpPerspective(img, matrix, (flattenMaxWidth, flattenMaxHeight))
+    return transformedImg
 
 def remove_black_bars(img) -> np.ndarray:
     # Convert the image to grayscale
