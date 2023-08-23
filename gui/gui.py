@@ -31,7 +31,7 @@ class Gui:
         root.title("Pokémon Card Scanner")
         root.geometry('1600x800')
         root.resizable(False, False)
-        root.wm_iconbitmap('assets/icon.ico')  
+        root.wm_iconbitmap('assets/icons/icon.ico')
 
         self.setupMenu()
         self.setupGui(root)
