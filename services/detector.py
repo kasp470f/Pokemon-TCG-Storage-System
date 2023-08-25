@@ -5,8 +5,8 @@ import numpy as np
 blur_value: int = 5
 contour_size: int = 1000
 
-flattenMaxWidth: int = 300
-flattenMaxHeight: int = 400
+flattenMaxWidth: int = 400
+flattenMaxHeight: int = 500
 
 def detectCard(img: np.ndarray) -> (tuple[np.ndarray, None] | tuple[np.ndarray, list[np.ndarray]]):
     # remove black bars from the frame
