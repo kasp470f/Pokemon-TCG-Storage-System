@@ -4,6 +4,8 @@ import threading
 import cv2 as cv
 import numpy as np
 from urllib.request import Request, urlopen
+import imagehash
+import PIL.Image as Image
 
 # load the file from path dataset/dataset.json
 api_dataset = open('data/scraper/api_dataset.json', 'r')
@@ -13,6 +15,7 @@ dataset = json.load(api_dataset)
 
 total = len(dataset)
 missingImages = 0
+missingCards = []
 redoHashes = False
 currentIndex = 0
 
@@ -50,14 +53,11 @@ def hashDatasetPart(start, end):
                 if img is None:
                     print("Error: " + str(card['Name']) + " image not found.")
                     missingImages = missingImages + 1
+                    missingCards.append(card)
                     continue
                 else:
-                    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-                    resized = cv.resize(gray, (hashSize, hashSize))
-                    avg = resized.mean()
-                    newHash = (resized > avg).flatten()
                     # save the hash to the dataset
-                    card['Hash'] = toStringHash(newHash)
+                    card['Hash'] = imagehash.phash(Image.fromarray(img)).__str__()
                     # print in procentage progress
                     print(str(currentIndex) + "/" + str(total - missingImages) + " " + str(round(currentIndex / (total - missingImages) * 100, 2)) + "%")
                     currentIndex = currentIndex + 1
