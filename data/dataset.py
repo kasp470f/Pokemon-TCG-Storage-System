@@ -2,10 +2,12 @@ import json
 from urllib.request import Request, urlopen;
 import cv2 as cv;
 import numpy as np
+import imagehash
+import PIL.Image as Image
 
 from models.card import CardClass;
 
-hamming_distance_threshold = 80;
+hamming_distance_threshold = 10;
 matches_length = 5;
 
 read_dataset = open('data/hash_dataset.json', 'r')
@@ -13,22 +15,15 @@ read_dataset = open('data/hash_dataset.json', 'r')
 # parse the json file
 dataset = json.load(read_dataset)
 
-def hashString_to_array(hashstring):
-    # split the string into an array of characters
-    hasharray = list(hashstring)
-    # convert the array of characters into an array of booleans
-    hasharray = [True if x == '1' else False for x in hasharray]
-    return hasharray
-
 def findMatch(image) -> CardClass | None:
-    hash = toHash(image)
+    hash = imagehash.phash(Image.fromarray(image))
 
     matches = []
     # loop through the dataset
     for card in dataset:
         # find the hamming distance between the hash and the card's hash if it exists
         if 'Hash' in card:
-            hamming_distance = np.count_nonzero(np.array(hashString_to_array(card['Hash'])) != np.array(hash))
+            hamming_distance = hash - imagehash.hex_to_hash(card['Hash'])
             # keep only the 5 best matches (lowest hamming distance) in the matches array if a match is found with a hamming distance lower than the threshold and it has a lower hamming distance than the last card in the list then push it to the list in the correct position (sorted by hamming distance) and remove the last card in the list
             if hamming_distance < hamming_distance_threshold and (len(matches) < matches_length or hamming_distance < matches[-1]['HammingDistance']):
                 matches.append({ "HammingDistance": hamming_distance, "Card": card})
@@ -46,13 +41,6 @@ def findMatch(image) -> CardClass | None:
         return matches[0]["Card"]
     else:
         return None    
-
-def toHash(img):
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    resized = cv.resize(gray, (16, 16))
-    avg = resized.mean()
-    hash = (resized > avg).flatten()
-    return hash
     
 def url_to_image(url) -> np.ndarray | None:
     # download the image, convert it to a NumPy array, and then read

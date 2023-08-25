@@ -30,6 +30,8 @@ def detectCard(img: np.ndarray) -> (tuple[np.ndarray, None] | tuple[np.ndarray, 
     contours, _ = cv.findContours(erode, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     contours = [c for c in contours if cv.contourArea(c) > 1000 and not np.array_equal(c[0], c[-1])]
     contours = sorted(contours, key=cv.contourArea, reverse=True)[:1]
+    # make sure the contour is a quadrilateral  (4 corners)
+    contours = [c for c in contours if len(cv.approxPolyDP(c, 0.01 * cv.arcLength(c, True), True)) == 4]
 
     if len(contours) == 0:
         return img, None
