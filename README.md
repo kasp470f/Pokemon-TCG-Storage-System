@@ -7,3 +7,4 @@ Allows you to store your collection in a database and search through it. And kee
 It will also allow you to select where you store the cards. Making it easier to find the cards you are looking for.</p>
 
 ### Credits
+[Pokemon TCG API](https://github.com/PokemonTCG/pokemon-tcg-data)
