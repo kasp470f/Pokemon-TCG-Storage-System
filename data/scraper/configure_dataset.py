@@ -19,8 +19,6 @@ missingCards = []
 redoHashes = False
 currentIndex = 0
 
-hashSize = 16
-
 async def url_to_image(url):
     # download the image, convert it to a NumPy array, and then read
     # it into OpenCV format
@@ -35,9 +33,6 @@ async def url_to_image(url):
         return img
     except:
         return None
-
-def toStringHash(hashArray):
-    return ''.join(['1' if x else '0' for x in hashArray])
 
 def hashDatasetPart(start, end):
     global missingImages, currentIndex
@@ -57,7 +52,7 @@ def hashDatasetPart(start, end):
                     continue
                 else:
                     # save the hash to the dataset
-                    card['Hash'] = imagehash.phash(Image.fromarray(img)).__str__()
+                    card['Hash'] = imagehash.dhash(Image.fromarray(img)).__str__()
                     # print in procentage progress
                     print(str(currentIndex) + "/" + str(total - missingImages) + " " + str(round(currentIndex / (total - missingImages) * 100, 2)) + "%")
                     currentIndex = currentIndex + 1
@@ -87,6 +82,11 @@ with open('data/scraper/hash_dataset.json', 'w') as outfile:
 
 # print the number of images that were not found
 print("Missing images: " + str(missingImages))
+
+# print the names of the cards that were not found
+print("Missing cards: ")
+for card in missingCards:
+    print(card['Id'])
 
 # close the file
 api_dataset.close()

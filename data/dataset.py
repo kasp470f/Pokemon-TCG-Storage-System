@@ -16,7 +16,7 @@ read_dataset = open('data/hash_dataset.json', 'r')
 dataset = json.load(read_dataset)
 
 def findMatch(image) -> CardClass | None:
-    hash = imagehash.phash(Image.fromarray(image))
+    hash = imagehash.dhash(Image.fromarray(image))
 
     matches = []
     # loop through the dataset
