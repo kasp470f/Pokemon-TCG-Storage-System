@@ -131,7 +131,8 @@ class Gui:
             self.transformFeed.image = transformFeedImg
         
     def captureCurrentTransform(self):
-        self.updateCardFeed(self.cvSearchImage.copy())
+        if self.cvSearchImage is not None:
+            self.updateCardFeed(self.cvSearchImage.copy())
 
     def updateCardFeed(self, img):
         self.searchImg = img
